@@ -1,41 +1,49 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
     <meta charset="utf-8" />
-    <meta name="viewportr" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-
-    <title>Olimpiadas</title>
+    <title>Olimpíadas</title>
 </head>
-
 <body>
     <header>
         <h1>Atletas do Brasil</h1>
-
-
+        <div id="login-box">
+            <h2>Login</h2>
+            <input type="text" placeholder="Email" id="email">
+            <input type="password" placeholder="Senha" id="senha">
+            <button onclick="fazerLogin()">Login</button>
+            <p>Não tem uma conta? <a href="#" onclick="abrirModal()">Crie uma aqui</a>.</p>
+        </div>
     </header>
+
     <main>
         <section>
             <input type="text" placeholder="Digite o nome do atleta" id="campo-pesquisa">
             <button onclick="pesquisar()">Pesquisar</button>
         </section>
 
-        <section class="resultados-pesquisa" id="resultados-pesquisa">
-
-
-        </section>
-
+        <section class="resultados-pesquisa" id="resultados-pesquisa"></section>
     </main>
+
     <footer>
-        <p>2024 - Atletas do Brasil. &copy;Todos os direitos reservados</p>
-        <p>Entre em contato pelo email: guilhermepereira@hotmail.com </p>
+        <p>2024 - Atletas do Brasil. &copy; Todos os direitos reservados</p>
+        <p>Entre em contato pelo email: guilhermepereira@hotmail.com</p>
     </footer>
+
+    <!-- Modal para Criação de Conta -->
+    <div id="modal-criacao-conta" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModal()">&times;</span>
+            <h2>Criar Conta</h2>
+            <input type="text" placeholder="Email" id="email-criacao">
+            <input type="password" placeholder="Senha" id="senha-criacao">
+            <button onclick="criarConta()">Criar Conta</button>
+        </div>
+    </div>
+
     <script src="dados.js"></script>
     <script src="app.js"></script>
-
-
-
 </body>
-
 </html>
