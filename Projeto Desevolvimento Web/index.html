@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atletas do Brasil</title>
+    <!-- Link para o arquivo CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1 id="titulo">Atletas do Brasil</h1>
+        <div id="login-box">
+            <h2>Login</h2>
+            <input type="text" placeholder="Usuário" id="usuario">
+            <input type="password" placeholder="Senha" id="senha">
+            <button onclick="fazerLogin()">Login</button>
+            <p>Não tem uma conta? <a href="#" onclick="abrirModal()">Crie uma aqui</a>.</p>
+        </div>
+    </header>
+
+    <main>
+        <section>
+            <input type="text" placeholder="Digite o nome do atleta" id="campo-pesquisa" onkeypress="handleKeyPress(event)">
+            <button onclick="pesquisar()">Pesquisar</button>
+        </section>
+
+        <section class="resultados-pesquisa" id="resultados-pesquisa"></section>
+    </main>
+
+    <footer>
+        <p>2024 - Atletas do Brasil. &copy; Todos os direitos reservados</p>
+        <p>Entre em contato pelo email: guilhermepereira@hotmail.com</p>
+    </footer>
+
+    <!-- Modal para Criação de Conta -->
+    <div id="modal-criacao-conta" class="modal">
+        <div class="modal-conteudo">
+            <span class="fechar" onclick="fecharModal()">&times;</span>
+            <h2>Criar Conta</h2>
+            <input type="text" placeholder="Usuário" id="usuario-criacao">
+            <input type="password" placeholder="Senha" id="senha-criacao">
+            <button onclick="criarConta()">Criar Conta</button>
+        </div>
+    </div>
+
+    <!-- Importa os dados primeiro -->
+    <script src="dados.js"></script>
+    <!-- Depois o app principal -->
+    <script src="app.js"></script>
+    <script>
+        // Variáveis para controle de pesquisa
+        let pesquisaContador = 0;
+        const limitePesquisasGratuitas = 3;
+
+        // Função para lidar com a tecla Enter
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                pesquisar();
+            }
+        }
+
+        // Função para pesquisar atletas
+        function pesquisar() {
+            const termoPesquisa = document.getElementById('campo-pesquisa').value.toLowerCase();
+
+            // Se o termo for "brasil", redireciona para o YouTube
+            if (termoPesquisa === "brasil") {
+                window.open("https://youtu.be/tW1x_EbAjfU?si=VlANH6JOy3X9k5v-", "_blank"); 
+                return;
+            }
+
+            // Verifica se o usuário excedeu o limite de pesquisas gratuitas
+            if (pesquisaContador >= limitePesquisasGratuitas) {
+                alert("Você atingiu o limite de pesquisas gratuitas. Por favor, faça login ou crie uma conta.");
+                return;
+            }
+
+            pesquisaContador++; // Incrementa o contador de pesquisas
+
+            const resultados = dados.filter(item => 
+                item.titulo.toLowerCase().includes(termoPesquisa) || 
+                item.tags.split(', ').some(tag => tag.toLowerCase().includes(termoPesquisa))
+            );
+
+            exibirResultados(resultados);
+        }
+
+        // Função para exibir resultados na página
+        function exibirResultados(resultados) {
+            const divResultados = document.getElementById('resultados-pesquisa');
+            divResultados.innerHTML = '';  // Limpa os resultados anteriores
+
+            if (resultados.length > 0) {
+                divResultados.style.display = 'block';
+                resultados.forEach(resultado => {
+                    const divItem = document.createElement('div');
+                    divItem.classList.add('item-resultado');
+
+                    // Adicionando a imagem antes do texto
+                    const imgElement = document.createElement('img');
+                    imgElement.style.width = "200px";  // Tamanho da imagem
+                    imgElement.style.marginBottom = "10px"; // Margem inferior para separar do texto
+                    divItem.appendChild(imgElement); // Coloca a imagem antes do texto
+
+                    // Criando elementos para título, descrição e link
+                    const tituloElement = document.createElement('h3');
+                    tituloElement.innerText = resultado.titulo;
+
+                    const descricaoElement = document.createElement('p');
+                    descricaoElement.innerText = resultado.descricao;
+
+                    const linkElement = document.createElement('a');
+                    linkElement.href = resultado.link;
+                    linkElement.target = "_blank";
+                    linkElement.innerText = "Leia mais";
+
+                    // Adicionando os elementos à divItem
+                    divItem.appendChild(tituloElement);
+                    divItem.appendChild(descricaoElement);
+                    divItem.appendChild(linkElement);
+
+                    divResultados.appendChild(divItem);
+
+                    // Pegar imagem da Flickr usando a API
+                    buscarImagemAtleta(resultado.titulo, imgElement);
+                });
+            } else {
+                divResultados.style.display = 'none';
+                alert("Nenhum resultado encontrado.");
+            }
+        }
+
+        // Função para buscar imagens na API do Flickr
+        function buscarImagemAtleta(nomeAtleta, imgElement) {
+            const apiKey = '558a47945381f34c96c2ab47548ef226';
+            const url = `https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=${apiKey}&text=${nomeAtleta}&format=json&nojsoncallback=1`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); // Verifique a resposta da API
+
+                    if (data.photos.photo.length > 0) {
+                        const photo = data.photos.photo[0];
+                        const imgUrl = `https://live.staticflickr.com/${photo.server}/${photo.id}_${photo.secret}_b.jpg`; // Usando o sufixo '_b' para uma imagem maior
+                        console.log(imgUrl); // Verifique a URL da imagem
+
+                        imgElement.src = imgUrl;
+                        imgElement.alt = nomeAtleta;
+                    } else {
+                        imgElement.alt = "Imagem não encontrada";
+                        imgElement.src = ""; // Limpa a imagem se não for encontrada
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao buscar imagem no Flickr:", error);
+                });
+        }
+
+        // Adicione esta função para esconder a tela de login e criação de conta
+        function esconderLogin() {
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('modal-criacao-conta').style.display = 'none';
+        }
+
+        // Função para criar conta (armazenar no IndexedDB)
+        function criarConta() {
+            const usuario = document.getElementById('usuario-criacao').value;
+            const senha = document.getElementById('senha-criacao').value;
+
+            // Verifica se a senha está entre 6 e 12 caracteres
+            if (senha.length < 6 || senha.length > 12) {
+                alert("A senha deve ter entre 6 a 12 caracteres.");
+                return;
+            }
+
+            const transaction = db.transaction(['usuarios'], 'readwrite');
+            const store = transaction.objectStore('usuarios');
+            const request = store.add({ usuario, senha });
+
+            transaction.oncomplete = function() {
+                alert("Conta criada com sucesso!");
+                esconderLogin(); // Esconde o login e criação de conta após criar conta
+                fecharModal();
+            };
+
+            transaction.onerror = function(event) {
+                console.error("Erro ao criar conta", event);
+            };
+        }
+
+        // Função de login
+        function fazerLogin() {
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+
+            const transaction = db.transaction(['usuarios'], 'readonly');
+            const store = transaction.objectStore('usuarios');
+            const request = store.get(usuario);
+
+            request.onsuccess = function(event) {
+                const dados = event.target.result;
+                if (dados && dados.senha === senha) {
+                    alert("Login realizado com sucesso!");
+                    esconderLogin(); // Esconde o login após o login bem-sucedido
+                } else {
+                    alert("Usuário ou senha incorretos.");
+                }
+            };
+
+            request.onerror = function(event) {
+                console.error("Erro ao fazer login", event);
+            };
+        }
+    </script>
+</body>
+</html>
