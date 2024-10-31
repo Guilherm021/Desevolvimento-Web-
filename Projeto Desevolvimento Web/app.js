@@ -18,8 +18,17 @@ function abrirBanco() {
     };
 }
 
+// Função para gerar o hash SHA-256 da senha
+async function gerarHashSenha(senha) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(senha);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Função de login
-function fazerLogin() {
+async function fazerLogin() {
     const usuario = document.getElementById('usuario').value;
     const senha = document.getElementById('senha').value;
 
@@ -27,11 +36,13 @@ function fazerLogin() {
     const store = transaction.objectStore('usuarios');
     const request = store.get(usuario);
 
-    request.onsuccess = function(event) {
+    request.onsuccess = async function(event) {
         const dados = event.target.result;
-        if (dados && dados.senha === senha) {
+        const hashSenha = await gerarHashSenha(senha);  // Hash da senha inserida
+
+        if (dados && dados.senha === hashSenha) {
             alert("Login realizado com sucesso!");
-            esconderLogin(); // Chama a função para esconder o formulário de login
+            esconderLogin();  // Chama a função para esconder o formulário de login
         } else {
             alert("Usuário ou senha incorretos.");
         }
@@ -43,7 +54,7 @@ function fazerLogin() {
 }
 
 // Função para criar conta
-function criarConta() {
+async function criarConta() {
     const usuario = document.getElementById('usuario-criacao').value;
     const senha = document.getElementById('senha-criacao').value;
 
@@ -53,14 +64,16 @@ function criarConta() {
         return;
     }
 
+    const hashSenha = await gerarHashSenha(senha);  // Gera o hash da senha
+
     const transaction = db.transaction(['usuarios'], 'readwrite');
     const store = transaction.objectStore('usuarios');
     
-    const request = store.add({ usuario, senha });
+    const request = store.add({ usuario, senha: hashSenha });  // Armazena o hash
 
     transaction.oncomplete = function() {
         alert("Conta criada com sucesso!");
-        esconderLogin(); // Chama a função para esconder o formulário de login
+        fecharModal();  // Fecha o modal de criação de conta
     };
 
     transaction.onerror = function(event) {
